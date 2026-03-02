@@ -1,113 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Amazon Rainforest – Lifelike Day/Night VR</title>
-  <meta name="description" content="Immersive Amazon with animals, day-night cycle, realistic sounds">
+  <title>Amazon Rainforest – Lifelike 360° Day/Night</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
   <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
+  <!-- Orbit controls = 360° drag + zoom on desktop & mobile -->
+  <script src="https://unpkg.com/aframe-orbit-controls@1.3.2/dist/aframe-orbit-controls.min.js"></script>
 </head>
 <body>
   <a-scene 
-    background="color: #000"
-    fog="type: exponential; color: #0a1208; density: 0.0009"
+    background="color: #0a140a"
+    fog="type: exponential; color: #0f1a0d; density: 0.0008"
+    vr-mode-ui="enabled: true"   <!-- Shows the VR button -->
     renderer="antialias: true; colorManagement: true">
 
-    <!-- Base dense misty jungle -->
+    <!-- Dense jungle background -->
     <a-entity 
-      id="environment"
+      id="env"
       environment="preset: forest; 
-                   seed: 37; 
+                   seed: 42; 
                    dressingAmount: 1400; 
                    dressingScale: 5 9 5; 
-                   dressingColor: #082f08 #041c04; 
+                   dressingColor: #0d3c0d #082608; 
                    ground: hills; 
-                   groundColor: #081008; 
+                   groundColor: #0b1408; 
                    groundYScale: 9; 
                    skyType: gradient; 
                    skyColor: #4a8cff; 
-                   horizonColor: #102810; 
+                   horizonColor: #143012; 
                    fog: 0.6; 
                    lightPosition: 1 3 -3; 
                    shadow: true">
     </a-entity>
 
-    <!-- Day/Night cycle controller (animates over ~240 seconds = 4 min full cycle; adjust dur for faster/slower) -->
-    <a-entity id="cycle-controller" animation__daynight="
-      property: components.environment.data;
-      from: {skyColor: '#4a8cff'; horizonColor: '#102810'; lightPosition: '1 3 -3'; fog: 0.6};
-      to: {skyColor: '#000814'; horizonColor: '#000408'; lightPosition: '-2 0.5 -1'; fog: 0.9};
-      dur: 240000; 
-      loop: true; 
-      dir: alternate; 
-      easing: easeInOutSine;
-      autoplay: true">
-      <!-- Animate overall ambient light intensity (darker at night) -->
-      <a-entity animation="property: light.intensity; from: 1.2; to: 0.15; dur: 240000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+    <!-- Day/Night cycle (4-minute smooth loop) -->
+    <a-entity animation="property: components.environment.data.skyColor; from: #4a8cff; to: #000814; dur: 240000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+    <a-entity animation="property: components.environment.data.horizonColor; from: #143012; to: #000408; dur: 240000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+    <a-entity animation="property: components.environment.data.lightPosition; from: 1 3 -3; to: -2 0.5 -1; dur: 240000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+    <a-entity animation="property: components.environment.data.fog; from: 0.6; to: 0.95; dur: 240000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
+
+    <!-- Ambient sounds (day birds + night frogs layer) -->
+    <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/2023/08/07/audio_8d7b6e8f9e.mp3); autoplay: true; loop: true; volume: 0.65"></a-entity>
+    <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/2024/01/15/audio_night-jungle-frogs-owls.mp3); autoplay: true; loop: true; volume: 0; animation__night: property: sound.volume; from: 0; to: 0.55; dur: 120000; loop: true; dir: alternate; delay: 120000"></a-entity>
+
+    <!-- 360° Orbit Camera (drag to rotate 360°, scroll/pinch to zoom) -->
+    <a-camera 
+      id="cam"
+      position="0 12 35" 
+      orbit-controls="target: 0 5 0; 
+                       minDistance: 5; 
+                       maxDistance: 80; 
+                       enableDamping: true; 
+                       dampingFactor: 0.12; 
+                       rotateSpeed: 0.5; 
+                       zoomSpeed: 1.2; 
+                       enablePan: true">
+    </a-camera>
+
+    <!-- Tall canopy trees (background) -->
+    <a-entity gltf-model="url(YOUR_HOSTED_TREE1.glb)" scale="10 10 10" position="-15 0 -30" rotation="0 45 0"></a-entity>
+    <a-entity gltf-model="url(YOUR_HOSTED_TREE2.glb)" scale="12 12 12" position="18 0 -35" rotation="0 -50 0"></a-entity>
+
+    <!-- Animals (replace URLs with your hosted files - see instructions below) -->
+
+    <!-- Howler Monkey (high in tree, gentle sway) -->
+    <a-entity position="-8 14 -18" scale="3.5 3.5 3.5" rotation="0 90 0">
+      <a-entity gltf-model="url(YOUR_HOSTED_HOWLER.glb)" animation-mixer="clip: *; loop: true"></a-entity>
+      <a-entity animation="property: position.y; from: 14; to: 14.8; dur: 6000; loop: true; dir: alternate; easing: easeInOutSine"></a-entity>
     </a-entity>
 
-    <!-- Day sounds: birds, insects, distant howler -->
-    <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/2023/08/07/audio_8d7b6e8f9e.mp3?filename=rainforest-ambience-12345.mp3); 
-                     autoplay: true; loop: true; volume: 0.65; positional: false" 
-              visible="true" animation__dayvol="property: sound.volume; from: 0.65; to: 0.2; dur: 120000; loop: true; dir: alternate"></a-entity>
-
-    <!-- Night sounds: frogs, owls, crickets overlay -->
-    <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/2024/01/15/audio_night-jungle-frogs-owls.mp3); 
-                     autoplay: true; loop: true; volume: 0; positional: false" 
-              animation__nightvol="property: sound.volume; from: 0; to: 0.55; dur: 120000; loop: true; dir: alternate; delay: 120000"></a-entity>
-
-    <!-- Player with smooth controls -->
-    <a-entity id="rig" movement-controls="speed: 0.15" position="0 1.65 0">
-      <a-camera look-controls wasd-controls="acceleration: 40"></a-camera>
+    <!-- Animated Jaguar (patrolling ground) -->
+    <a-entity position="6 0 -12" scale="4 4 4">
+      <a-entity gltf-model="url(YOUR_HOSTED_JAGUAR.glb)" animation-mixer="clip: walk; loop: true"></a-entity>
+      <a-entity animation="property: position.x; from: 6; to: -8; dur: 25000; loop: true; dir: alternate; easing: linear"></a-entity>
     </a-entity>
 
-    <!-- Tall emergent trees (as before, placeholders) -->
-    <a-entity gltf-model="url(https://media.sketchfab.com/models/78dc7da4047b4fff8cb83c7159f52699/scene.gltf)" scale="10 10 10" position="-12 0 -25" rotation="0 60 0"></a-entity>
-    <a-entity gltf-model="url(https://media.sketchfab.com/models/7dd5c7212f984e17b41ecc83b271be0a/scene.gltf)" scale="11 11 11" position="14 0 -30" rotation="0 -40 0"></a-entity>
-
-    <!-- Animals – variety with positional sounds & subtle movement -->
-
-    <!-- 1. Howler Monkey (high in tree, loud call – positional) -->
-    <a-entity position="-6 12 -14" rotation="0 90 0" scale="4 4 4">
-      <a-entity gltf-model="url(https://media.sketchfab.com/models/some-howler-monkey-id/scene.gltf)" animation-mixer="clip: *idle*; loop: true"></a-entity>
-      <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/howler-monkey-call.mp3); autoplay: true; loop: true; volume: 0.4; positional: true; rolloffFactor: 2"></a-entity>
-      <a-entity animation="property: position; to: -6.5 12.2 -14; dir: alternate; dur: 8000; easing: easeInOutSine; loop: true"></a-entity> <!-- Gentle sway -->
+    <!-- Toucan/Macaw (flying loop) -->
+    <a-entity position="12 11 -8" scale="2.8 2.8 2.8">
+      <a-entity gltf-model="url(YOUR_HOSTED_MACAW.glb)" animation-mixer></a-entity>
+      <a-entity animation="property: position; from: 12 11 -8; to: 20 15 -15; dur: 18000; loop: true; dir: alternate; easing: easeInOutQuad"></a-entity>
     </a-entity>
 
-    <!-- 2. Scarlet Macaw / Toucan (flying around) -->
-    <a-entity position="8 10 -10" scale="3 3 3">
-      <a-entity gltf-model="url(https://media.sketchfab.com/models/macaw-or-toucan-free/scene.gltf)" animation-mixer></a-entity>
-      <a-entity animation__fly="property: position; from: 8 10 -10; to: 12 12 -6; dur: 15000; loop: true; dir: alternate; easing: easeInOutQuad"></a-entity>
-      <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/macaw-squawk.mp3); volume: 0.35; positional: true"></a-entity>
+    <!-- Sloth (hanging, slow rotate) -->
+    <a-entity position="-4 9 -7" scale="3.5 3.5 3.5">
+      <a-entity gltf-model="url(YOUR_HOSTED_SLOTH.glb)" animation-mixer="clip: idle"></a-entity>
+      <a-entity animation="property: rotation.y; from: 0; to: 360; dur: 90000; loop: true; easing: linear"></a-entity>
     </a-entity>
 
-    <!-- 3. Jaguar (on ground, prowling) -->
-    <a-entity position="5 0 -8" rotation="0 180 0" scale="5 5 5">
-      <a-entity gltf-model="url(https://media.sketchfab.com/models/black-jaguar-animated/scene.gltf)" animation-mixer="clip: walk"></a-entity>
-      <a-entity animation="property: position; from: 5 0 -8; to: -3 0 -12; dur: 20000; loop: true; dir: alternate; easing: linear"></a-entity> <!-- Patrol path -->
-      <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/jaguar-growl-low.mp3); volume: 0.3; positional: true; maxDistance: 20"></a-entity>
+    <!-- Poison Dart Frog (simple glowing proxy - replace with real model if you want) -->
+    <a-entity position="3 0.4 -5" scale="1.5 1.5 1.5">
+      <a-sphere radius="0.2" color="#ff0088" emissive="#ff44aa" emissive-intensity="0.6"></a-sphere>
     </a-entity>
 
-    <!-- 4. Three-toed Sloth (hanging, slow move) -->
-    <a-entity position="-3 8 -6" scale="4 4 4">
-      <a-entity gltf-model="url(https://media.sketchfab.com/models/sloth-free-gltf/scene.gltf)" animation-mixer="clip: idle"></a-entity>
-      <a-entity animation="property: rotation; to: 0 360 0; dur: 60000; loop: true; easing: linear"></a-entity> <!-- Very slow turn -->
-    </a-entity>
-
-    <!-- 5. Poison Dart Frog (small, on leaf/ground) -->
-    <a-entity position="2 0.3 -4" scale="2 2 2">
-      <a-entity geometry="primitive: sphere; radius: 0.15" material="color: #ff0044; emissive: #ff0066; emissiveIntensity: 0.4"></a-entity> <!-- Simple proxy if no model -->
-      <a-entity sound="src: url(https://cdn.pixabay.com/download/audio/frog-rainforest.mp3); volume: 0.5; positional: true"></a-entity>
-    </a-entity>
-
-    <!-- More animals: add capybara near "water", anaconda coiled, etc. similarly -->
-
-    <!-- Fireflies stronger at night -->
-    <a-entity particle-system="preset: dust; color: #ffff99,#ffea80; particleCount: 200; maxAge: 8; speed: 0.25; size: 0.4 1.0; positionSpread: 50 10 50; velocityValue: 0 0.1 0; opacity: 0.4,0.9" 
-              animation__nightfire="property: particle-system.enabled; from: false; to: true; dur: 1; delay: 120000; loop: true; dir: alternate"></a-entity>
-
-    <!-- Gentle leaf wind sway on foliage -->
-    <a-entity animation="property: rotation; from: 0 0 0; to: 2 0 -2; dir: alternate; dur: 12000; loop: true; easing: easeInOutSine"></a-entity>
+    <!-- Mist + Fireflies (stronger at night) -->
+    <a-entity particle-system="preset: dust; color: #aaffff; particleCount: 350; maxAge: 15; speed: 0.07; size: 1.5 4; positionSpread: 70 15 70; opacity: 0.15"></a-entity>
+    <a-entity particle-system="preset: dust; color: #ffee88; particleCount: 180; maxAge: 7; speed: 0.3; size: 0.3 1; positionSpread: 45 8 45; opacity: 0.7" 
+              animation__night="property: particle-system.enabled; from: false; to: true; dur: 1; delay: 120000; loop: true; dir: alternate"></a-entity>
 
   </a-scene>
 </body>
